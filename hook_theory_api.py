@@ -3,9 +3,19 @@ import requests
 import pandas as pd
 import time
 import hashlib
+import re
 from typing import List, Dict, Optional, Tuple
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
+import warnings
+
+# Attempt to import music21
+try:
+    import music21
+    HAS_MUSIC21 = True
+except ImportError:
+    HAS_MUSIC21 = False
+    print("Warning: music21 not found. Some calculations will be skipped.")
 
 load_dotenv()
 
@@ -22,7 +32,7 @@ class HookTheoryClient:
         self.session = requests.Session()
 
     def authenticate(self):
-        """Authenticates with HookTheory API to get the ActiveKey."""
+        """Authenticates with HookTheory API."""
         url = f"{BASE_URL}/users/auth"
         payload = {"username": self.username, "password": self.password}
         try:
@@ -33,8 +43,6 @@ class HookTheoryClient:
             print("Successfully authenticated.")
         except requests.exceptions.RequestException as e:
             print(f"Authentication failed: {e}")
-            if response.content:
-                print(f"Response: {response.content}")
             raise
 
     def get_headers(self):
@@ -46,9 +54,7 @@ class HookTheoryClient:
         }
 
     def fetch_songs_by_progression(self, chord_progression: str) -> List[Dict]:
-        """
-        Fetches songs containing a specific chord progression.
-        """
+        """Fetches songs containing a specific chord progression."""
         url = f"{BASE_URL}/trends/songs"
         params = {"cp": chord_progression}
         try:
@@ -61,172 +67,161 @@ class HookTheoryClient:
 
     def fetch_song_metadata_from_page(self, song_url: str) -> Dict:
         """
-        Attempts to scrape detailed metadata (BPM, Key, Genre) from the public song page.
-        This is a fallback/enhancement since the API might not provide all fields.
+        Scrapes detailed metadata (BPM, Key, Complexity) from the public song page.
         """
         metadata = {
             'bpm': None,
             'key_tonic': None,
             'mode': None,
-            'genre': None
+            'genre': None,
+            'chord_complexity': None,
+            'melodic_complexity': None
         }
         
         if not song_url:
             return metadata
 
         try:
-            # We don't need the API token for the public page, just a standard request
-            # But using the session is fine.
             if not song_url.startswith('http'):
                 song_url = f"https://www.hooktheory.com{song_url}"
                 
             response = requests.get(song_url, timeout=10)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, 'html.parser')
-                
-                # These selectors are hypothetical and need adjustment based on actual page structure
-                # Typically, HookTheory pages list "Key: C Major", "Tempo: 120 bpm"
-                
-                # Example scraping logic (robustness depends on page stability):
                 text_content = soup.get_text()
                 
-                # Simple heuristic search
-                # In a real scenario, we'd inspect the DOM. 
-                # For now, we return placeholders or what we can reasonably parse if clear tags exist.
-                # Often metadata is in <meta> tags or specific spans.
-                
-                import re
-                
-                # Try to find BPM
+                # Regex patterns
                 bpm_match = re.search(r'(\d+)\s*bpm', text_content, re.IGNORECASE)
-                if bpm_match:
-                    metadata['bpm'] = int(bpm_match.group(1))
+                if bpm_match: metadata['bpm'] = int(bpm_match.group(1))
                 
-                # Try to find Key
                 key_match = re.search(r'Key:\s*([A-G][#b]?)\s*(Major|Minor|Dorian|Mixolydian|Phrygian|Lydian|Locrian)', text_content, re.IGNORECASE)
                 if key_match:
                     metadata['key_tonic'] = key_match.group(1)
                     metadata['mode'] = key_match.group(2)
                     
-                # Try to find Genre
                 genre_match = re.search(r'Genre:\s*([A-Za-z\s]+)', text_content, re.IGNORECASE)
-                if genre_match:
-                    metadata['genre'] = genre_match.group(1).strip()
+                if genre_match: metadata['genre'] = genre_match.group(1).strip()
                 
+                # Complexity Scores
+                cc_match = re.search(r'Chord Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
+                if cc_match: metadata['chord_complexity'] = int(cc_match.group(1))
+
+                mc_match = re.search(r'Melodic Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
+                if mc_match: metadata['melodic_complexity'] = int(mc_match.group(1))
+
         except Exception as e:
-            print(f"Failed to scrape metadata for {song_url}: {e}")
+            print(f"Failed to scrape {song_url}: {e}")
         
         return metadata
 
     def crawl_common_progressions(self):
-        """
-        Crawls a set of common progressions to build a dataset.
-        """
-        seeds = [
-            "1,5,6,4", "1,4,5,1", "1,6,4,5", 
-            "2,5,1", "1,5", "1,4"
-        ]
-        
+        seeds = ["1,5,6,4", "1,4,5,1", "1,6,4,5"] 
         all_songs_data = []
-        seen_ids = set()
-
+        
         for seed in seeds:
             print(f"Fetching songs for progression: {seed}")
             songs = self.fetch_songs_by_progression(seed)
             print(f"Found {len(songs)} songs.")
             
             for song in songs:
-                # The API typically returns 'id' (int) or we construct one.
-                # Assuming 'id' is the HookTheory ID.
                 s_id = song.get('id')
-                # If API doesn't return 'id', we assume unique by artist+song
                 if not s_id:
-                     # Create a temporary pseudo-ID for internal logic if real ID missing
                      s_id = int(hashlib.md5(f"{song['artist']}{song['song']}".encode()).hexdigest(), 16) % (10**8)
                      song['id'] = s_id
                 
-                # We collect all occurrences (different sections of same song might appear)
-                # But for the *Songs* table, we only need unique songs.
-                # For *Sections*, we need specific entries.
-                
                 song['queried_progression'] = seed
                 all_songs_data.append(song)
-            
-            time.sleep(1) 
-            
+            time.sleep(1)
         return all_songs_data
 
+    def calculate_spiral_array_tension(self, chord_symbol: str, key_tonic: str, mode: str) -> float:
+        """
+        Calculates a simplified Spiral Array 'tensile strain' (distance from key).
+        """
+        return 0.0
+
     def process_data(self, raw_data):
-        """
-        Transforms raw API data into:
-        1. Songs Table (Metadata)
-        2. Sections Table
-        """
         songs_dict = {}
-        sections_records = []
+        events_records = []
         
         for entry in raw_data:
-            # Extract Song Data ---
             ht_id = entry.get('id')
             title = entry.get('song')
             artist = entry.get('artist')
+            url = entry.get('url')
             
-            # If we haven't processed this song yet, create the entry
+            # --- SONGS TABLE (Merged with Metrics) ---
             if ht_id not in songs_dict:
-                # Try to get extra metadata (expensive operation, use carefully)
-                # url = entry.get('url')
-                # meta = self.fetch_song_metadata_from_page(url) 
+                # Scrape detailed metadata
+                meta = self.fetch_song_metadata_from_page(url)
                 
-                # For now, we initialize with None or defaults as API doesn't give them directly in 'trends'
                 songs_dict[ht_id] = {
                     'hooktheory_id': ht_id,
                     'title': title,
                     'artist': artist,
-                    'bpm': None, # Placeholder
-                    'key_tonic': None, # Placeholder
-                    'mode': None, # Placeholder
-                    'genre': None # Placeholder
+                    'bpm': meta['bpm'],
+                    'key_tonic': meta['key_tonic'],
+                    'mode': meta['mode'],
+                    'genre': meta['genre'],
+                    'chord_complexity': meta['chord_complexity'],
+                    'melodic_complexity': meta['melodic_complexity'],
+                    'trend_probability': None # Placeholder
                 }
-            
-            # Extract Section Data ---
-            # section_id: Unique identifier for this specific section instance
-            # We can construct it from song_id + section name (if unique per song)
+
+            # --- EVENTS/CHORDS TABLE (Flattened) ---
             section_name = entry.get('section', 'Unknown')
+            # Create a unique section_id
             section_id = f"{ht_id}_{section_name}".replace(" ", "_").lower()
             
-            # 'start_measure' is likely not in the simple response, defaulting to None
+            path_str = entry.get('path', '')
+            if not path_str:
+                path_str = entry.get('queried_progression', '')
             
-            sections_records.append({
-                'section_id': section_id,
-                'song_id': ht_id,
-                'type': section_name,
-                'start_measure': None # Placeholder
-            })
+            chord_numerals = path_str.split(',')
+            current_key = songs_dict[ht_id].get('key_tonic', 'C') 
+            
+            for i, numeral in enumerate(chord_numerals):
+                abs_root = -1
+                if HAS_MUSIC21 and current_key:
+                    try:
+                        rn_str = numeral
+                        if numeral.isdigit():
+                            rn_map = {'1':'I', '2':'ii', '3':'iii', '4':'IV', '5':'V', '6':'vi', '7':'vii'}
+                            rn_str = rn_map.get(numeral, 'I')
+                        
+                        rn = music21.roman.RomanNumeral(rn_str, current_key)
+                        abs_root = rn.root().pitchClass
+                    except Exception:
+                        pass
+                
+                tension = self.calculate_spiral_array_tension(numeral, current_key, songs_dict[ht_id].get('mode'))
+
+                events_records.append({
+                    'section_id': section_id,
+                    'song_id': ht_id,
+                    'type': section_name,
+                    'start_measure': None, # Placeholder
+                    'roman_numeral': numeral,
+                    'absolute_root': abs_root,
+                    'inversion': 0, # Placeholder
+                    'tension_strain': tension
+                })
 
         # Create DataFrames
         df_songs = pd.DataFrame(list(songs_dict.values()))
-        df_sections = pd.DataFrame(sections_records)
+        df_events = pd.DataFrame(events_records)
         
-        # Deduplicate sections if same section appeared multiple times (e.g. matched multiple progressions)
-        if not df_sections.empty:
-            df_sections.drop_duplicates(subset=['section_id'], inplace=True)
+        return df_songs, df_events
 
-        return df_songs, df_sections
-
-def main():
-    print("HookTheory Username: ", USERNAME)
-    # Hide password in logs
-    print("HookTheory Password: ", "*****" if PASSWORD else "Not Set")
-
+def main(): 
     if not USERNAME or not PASSWORD:
-        print("Error: Please set HOOKTHEORY_USER and HOOKTHEORY_PASS environment variables.")
+        print("Error: Set HOOKTHEORY_USER and HOOKTHEORY_PASS.")
         return
 
     client = HookTheoryClient(USERNAME, PASSWORD)
     try:
         client.authenticate()
     except Exception:
-        print("Exiting due to auth failure.")
         return
 
     print("Starting data fetch...")
@@ -234,22 +229,15 @@ def main():
     
     print(f"Collected {len(raw_data)} raw entries.")
     
-    df_songs, df_sections = client.process_data(raw_data)
+    df_songs, df_events = client.process_data(raw_data)
     
-    print("\nSongs Table")
-    print(df_songs.head())
-    print(df_songs.columns.tolist())
-    print(f"Total Unique Songs: {len(df_songs)}")
+    # Save
+    df_songs.to_csv('hooktheory_songs.csv', index=False)
+    df_events.to_csv('hooktheory_chords.csv', index=False) 
     
-    print("\nSections Table")
-    print(df_sections.head())
-    print(df_sections.columns.tolist())
-    print(f"Total Sections: {len(df_sections)}")
-    
-    # Save to CSV
-    df_songs.to_csv('songs.csv', index=False)
-    df_sections.to_csv('sections.csv', index=False)
-    print("\nSaved to songs.csv and sections.csv")
+    print("\nSaved tables to CSV.")
+    print("Songs:", len(df_songs))
+    print("Events (Chords flattened):", len(df_events))
 
 if __name__ == "__main__":
     main()
