@@ -293,8 +293,8 @@ def main():
     print("Events (Chords flattened):", len(df_events))
     
     # Example usage of the new function
-    client.process_single_url_and_append("https://www.hooktheory.com/theorytab/view/scorpions/still-loving-you")
-    client.process_single_url_and_append("https://www.hooktheory.com/theorytab/view/ichiro-shimakura/pokemon-tcg---imakunis-theme")
+    url = "https://www.hooktheory.com/theorytab/view/scorpions/still-loving-you"
+    #client.process_single_url_and_append(url)
 
 if __name__ == "__main__":
     main()
