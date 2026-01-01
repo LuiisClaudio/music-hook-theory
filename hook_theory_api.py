@@ -94,6 +94,9 @@ class HookTheoryClient:
                 text_content = soup.get_text()
                 #print text_content
                 #print(f"Text content: {text_content}\n")
+                #Dump the text content to a file
+                with open("song_text_content.txt", "w", encoding="utf-8") as f:
+                    f.write(text_content)
                 
                 # Parse metadata from text
                 scraped_data = self._parse_metadata_from_text(text_content)
@@ -109,11 +112,9 @@ class HookTheoryClient:
         return int(match.group(1)) if match else None
 
     def _parse_key_and_mode(self, text_content: str) -> Tuple[Optional[str], Optional[str]]:
-        #print(text_content)
-        match = re.search(r'Key:\s*([A-G][#b]?)\s*(Major|Minor|Dorian|Mixolydian|Phrygian|Lydian|Locrian)', text_content, re.IGNORECASE)
+        # Matches "Key: C Major" or just "C Major"
+        match = re.search(r'(?:Key:\s*)?\b([A-G][#b]?)\s+(Major|Minor|Dorian|Mixolydian|Phrygian|Lydian|Locrian)\b', text_content, re.IGNORECASE)
         if match:
-            # print(match.group(1))
-            print("Achei um match")
             return match.group(1), match.group(2)
         return None, None
 
