@@ -78,6 +78,9 @@ class HookTheoryClient:
             'melodic_complexity': None
         }
         
+        # Song URL validation
+        #print song url
+        #print(f"Fetching song metadata from: {song_url}\n")
         if not song_url:
             return metadata
 
@@ -89,30 +92,67 @@ class HookTheoryClient:
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, 'html.parser')
                 text_content = soup.get_text()
+                #print text_content
+                #print(f"Text content: {text_content}\n")
                 
-                # Regex patterns
-                bpm_match = re.search(r'(\d+)\s*bpm', text_content, re.IGNORECASE)
-                if bpm_match: metadata['bpm'] = int(bpm_match.group(1))
-                
-                key_match = re.search(r'Key:\s*([A-G][#b]?)\s*(Major|Minor|Dorian|Mixolydian|Phrygian|Lydian|Locrian)', text_content, re.IGNORECASE)
-                if key_match:
-                    metadata['key_tonic'] = key_match.group(1)
-                    metadata['mode'] = key_match.group(2)
-                    
-                genre_match = re.search(r'Genre:\s*([A-Za-z\s]+)', text_content, re.IGNORECASE)
-                if genre_match: metadata['genre'] = genre_match.group(1).strip()
-                
-                # Complexity Scores
-                cc_match = re.search(r'Chord Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
-                if cc_match: metadata['chord_complexity'] = int(cc_match.group(1))
-
-                mc_match = re.search(r'Melodic Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
-                if mc_match: metadata['melodic_complexity'] = int(mc_match.group(1))
+                # Parse metadata from text
+                scraped_data = self._parse_metadata_from_text(text_content)
+                metadata.update(scraped_data)
 
         except Exception as e:
             print(f"Failed to scrape {song_url}: {e}")
         
         return metadata
+
+    def _parse_bpm(self, text_content: str) -> Optional[int]:
+        match = re.search(r'(\d+)\s*bpm', text_content, re.IGNORECASE)
+        return int(match.group(1)) if match else None
+
+    def _parse_key_and_mode(self, text_content: str) -> Tuple[Optional[str], Optional[str]]:
+        #print(text_content)
+        match = re.search(r'Key:\s*([A-G][#b]?)\s*(Major|Minor|Dorian|Mixolydian|Phrygian|Lydian|Locrian)', text_content, re.IGNORECASE)
+        if match:
+            # print(match.group(1))
+            print("Achei um match")
+            return match.group(1), match.group(2)
+        return None, None
+
+    def _parse_genre(self, text_content: str) -> Optional[str]:
+        match = re.search(r'Genre:\s*([A-Za-z\s]+)', text_content, re.IGNORECASE)
+        return match.group(1).strip() if match else None
+
+    def _parse_chord_complexity(self, text_content: str) -> Optional[int]:
+        match = re.search(r'Chord Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
+        return int(match.group(1)) if match else None
+
+    def _parse_melodic_complexity(self, text_content: str) -> Optional[int]:
+        match = re.search(r'Melodic Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
+        return int(match.group(1)) if match else None
+
+    def _parse_metadata_from_text(self, text_content: str) -> Dict:
+        """Parses metadata fields from the raw text content of a song page."""
+        data = {}
+        
+        bpm = self._parse_bpm(text_content)
+        if bpm: data['bpm'] = bpm
+        
+        key, mode = self._parse_key_and_mode(text_content)
+        if key: 
+            data['key_tonic'] = key
+            data['mode'] = mode
+            
+        genre = self._parse_genre(text_content)
+        if genre: data['genre'] = genre
+        
+        cc = self._parse_chord_complexity(text_content)
+        if cc is not None: data['chord_complexity'] = cc
+        
+        mc = self._parse_melodic_complexity(text_content)
+        if mc is not None: data['melodic_complexity'] = mc
+        
+        return data
+
+
 
     def crawl_common_progressions(self):
         seeds = ["1,5,6,4", "1,4,5,1", "1,6,4,5"] 
@@ -150,7 +190,7 @@ class HookTheoryClient:
             artist = entry.get('artist')
             url = entry.get('url')
             
-            # --- SONGS TABLE (Merged with Metrics) ---
+            # SONGS TABLE (Merged with Metrics)
             if ht_id not in songs_dict:
                 # Scrape detailed metadata
                 meta = self.fetch_song_metadata_from_page(url)
@@ -168,7 +208,7 @@ class HookTheoryClient:
                     'trend_probability': None # Placeholder
                 }
 
-            # --- EVENTS/CHORDS TABLE (Flattened) ---
+            # EVENTS/CHORDS TABLE (Flattened)
             section_name = entry.get('section', 'Unknown')
             # Create a unique section_id
             section_id = f"{ht_id}_{section_name}".replace(" ", "_").lower()
