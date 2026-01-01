@@ -216,6 +216,55 @@ class HookTheoryClient:
         df_events = pd.DataFrame(events_records)
         
         return df_songs, df_events
+    
+    def process_single_url(self, url: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Fetches metadata for a single URL and orchestrates process_data to return DataFrames.
+        """
+        print(f"Processing URL: {url}")
+        
+        # 1. Scrape first to get Title/Artist needed for ID generation and Entry construction
+        meta = self.fetch_song_metadata_from_page(url)
+        
+        title = meta.get('song_title', 'Unknown')
+        artist = meta.get('artist', 'Unknown')
+        
+        # Generate ID consistent with main logic
+        ht_id = int(hashlib.md5(f"{artist}{title}".encode()).hexdigest(), 16) % (10**8)
+        
+        # 2. Construct raw_data entry mimicking API response
+        entry = {
+            'id': ht_id,
+            'song': title,
+            'artist': artist,
+            'url': url,
+            'section': 'Unknown', # Placeholder
+            'path': '' # No chord path data available from public page scrape
+        }
+        
+        # 3. Use process_data
+        return self.process_data([entry])
+
+    def append_to_csv(self, df: pd.DataFrame, csv_path: str):
+        """
+        Appends a DataFrame to a CSV file, handling header creation.
+        """
+        import os
+        df.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False)
+        print(f"Appended {len(df)} rows to {csv_path}.")
+
+    def process_single_url_and_append(self, url: str, csv_path: str = 'hooktheory_songs.csv'):
+        """
+        Orchestrates processing a single URL and appending to CSV.
+        """
+        try:
+            df_songs, _ = self.process_single_url(url)
+            self.append_to_csv(df_songs, csv_path)
+            print("Successfully processed and appended single URL.")
+        except Exception as e:
+            print(f"Error processing URL {url}: {e}")
+
+
 
 def main(): 
     if not USERNAME or not PASSWORD:
@@ -242,6 +291,10 @@ def main():
     print("\nSaved tables to CSV.")
     print("Songs:", len(df_songs))
     print("Events (Chords flattened):", len(df_events))
+    
+    # Example usage of the new function
+    client.process_single_url_and_append("https://www.hooktheory.com/theorytab/view/scorpions/still-loving-you")
+    client.process_single_url_and_append("https://www.hooktheory.com/theorytab/view/ichiro-shimakura/pokemon-tcg---imakunis-theme")
 
 if __name__ == "__main__":
     main()
