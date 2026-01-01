@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Tuple
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 import warnings
+from search_music_info import extract_music_info_from_text
 
 # Attempt to import music21
 try:
@@ -75,7 +76,10 @@ class HookTheoryClient:
             'mode': None,
             'genre': None,
             'chord_complexity': None,
-            'melodic_complexity': None
+            'melodic_complexity': None,
+            'chord_melody_tension': None,
+            'chord_progression_novelty': None,
+            'chord_bass_melody': None
         }
         
         # Song URL validation
@@ -99,59 +103,14 @@ class HookTheoryClient:
                     f.write(text_content)
                 
                 # Parse metadata from text
-                scraped_data = self._parse_metadata_from_text(text_content)
+                # Using the imported helper from search_music_info
+                scraped_data = extract_music_info_from_text(text_content)
                 metadata.update(scraped_data)
 
         except Exception as e:
             print(f"Failed to scrape {song_url}: {e}")
         
         return metadata
-
-    def _parse_bpm(self, text_content: str) -> Optional[int]:
-        match = re.search(r'(\d+)\s*bpm', text_content, re.IGNORECASE)
-        return int(match.group(1)) if match else None
-
-    def _parse_key_and_mode(self, text_content: str) -> Tuple[Optional[str], Optional[str]]:
-        # Matches "Key: C Major" or just "C Major"
-        match = re.search(r'(?:Key:\s*)?\b([A-G][#b]?)\s+(Major|Minor|Dorian|Mixolydian|Phrygian|Lydian|Locrian)\b', text_content, re.IGNORECASE)
-        if match:
-            return match.group(1), match.group(2)
-        return None, None
-
-    def _parse_genre(self, text_content: str) -> Optional[str]:
-        match = re.search(r'Genre:\s*([A-Za-z\s]+)', text_content, re.IGNORECASE)
-        return match.group(1).strip() if match else None
-
-    def _parse_chord_complexity(self, text_content: str) -> Optional[int]:
-        match = re.search(r'Chord Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
-        return int(match.group(1)) if match else None
-
-    def _parse_melodic_complexity(self, text_content: str) -> Optional[int]:
-        match = re.search(r'Melodic Complexity:?\s*(\d{1,3})', text_content, re.IGNORECASE)
-        return int(match.group(1)) if match else None
-
-    def _parse_metadata_from_text(self, text_content: str) -> Dict:
-        """Parses metadata fields from the raw text content of a song page."""
-        data = {}
-        
-        bpm = self._parse_bpm(text_content)
-        if bpm: data['bpm'] = bpm
-        
-        key, mode = self._parse_key_and_mode(text_content)
-        if key: 
-            data['key_tonic'] = key
-            data['mode'] = mode
-            
-        genre = self._parse_genre(text_content)
-        if genre: data['genre'] = genre
-        
-        cc = self._parse_chord_complexity(text_content)
-        if cc is not None: data['chord_complexity'] = cc
-        
-        mc = self._parse_melodic_complexity(text_content)
-        if mc is not None: data['melodic_complexity'] = mc
-        
-        return data
 
 
 
@@ -198,14 +157,18 @@ class HookTheoryClient:
                 
                 songs_dict[ht_id] = {
                     'hooktheory_id': ht_id,
+                    'url': url,
                     'title': title,
                     'artist': artist,
-                    'bpm': meta['bpm'],
-                    'key_tonic': meta['key_tonic'],
-                    'mode': meta['mode'],
-                    'genre': meta['genre'],
-                    'chord_complexity': meta['chord_complexity'],
-                    'melodic_complexity': meta['melodic_complexity'],
+                    'bpm': meta.get('bpm'),
+                    'key_tonic': meta.get('key_tonic'),
+                    'mode': meta.get('mode'),
+                    'genre': meta.get('genre'),
+                    'chord_complexity': meta.get('chord_complexity'),
+                    'melodic_complexity': meta.get('melodic_complexity'),
+                    'chord_melody_tension': meta.get('chord_melody_tension'),
+                    'chord_progression_novelty': meta.get('chord_progression_novelty'),
+                    'chord_bass_melody': meta.get('chord_bass_melody'),
                     'trend_probability': None # Placeholder
                 }
 
