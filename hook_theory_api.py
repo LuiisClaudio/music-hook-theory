@@ -79,7 +79,16 @@ class HookTheoryClient:
             'melodic_complexity': None,
             'chord_melody_tension': None,
             'chord_progression_novelty': None,
-            'chord_bass_melody': None
+            'chord_bass_melody': None,
+            
+            'type': None,
+            'start_measure': None,
+            'end_measure': None,
+            'roman_numeral': None,
+            'absolute_root': None,
+            'inversion': None,
+
+            'chord_progression': None,
         }
         
         # Song URL validation
@@ -186,7 +195,7 @@ class HookTheoryClient:
                     'section_id': section_id,
                     'song_id': ht_id,
                     'type': section_name,
-                    'start_measure': None, # Placeholder
+                    'start_measure': i + 1,
                     'roman_numeral': numeral,
                     'absolute_root': abs_root,
                     'inversion': 0, # Placeholder
@@ -207,6 +216,10 @@ class HookTheoryClient:
         
         # 1. Scrape first to get Title/Artist needed for ID generation and Entry construction
         meta = self.fetch_song_metadata_from_page(url)
+        
+        #Dump meta to a txt file
+        with open("meta.txt", "w", encoding="utf-8") as f:
+            f.write(str(meta))
         
         title = meta.get('song_title', 'Unknown')
         artist = meta.get('artist', 'Unknown')
@@ -240,8 +253,9 @@ class HookTheoryClient:
         Orchestrates processing a single URL and appending to CSV.
         """
         try:
-            df_songs, _ = self.process_single_url(url)
+            df_songs,df_events = self.process_single_url(url)
             self.append_to_csv(df_songs, csv_path)
+            self.append_to_csv(df_events, 'hooktheory_chords.csv')
             print("Successfully processed and appended single URL.")
         except Exception as e:
             print(f"Error processing URL {url}: {e}")

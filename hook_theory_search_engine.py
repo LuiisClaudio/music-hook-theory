@@ -286,12 +286,13 @@ def run_search(params):
         try:
             # Process (Scrape & Build DF)
             # We use process_single_url to getting the DF without appending yet
-            df_songs, _ = client.process_single_url(url)
+            df_songs, df_events = client.process_single_url(url)
             
             # Check Filters
             if filter_dataframe(df_songs, params):
                 print(f"Match found: {url}")
                 client.append_to_csv(df_songs, 'hooktheory_songs.csv')
+                client.append_to_csv(df_events, 'hooktheory_chords.csv')
                 matched_count += 1
             else:
                 print(f"Filtered out: {url}")
