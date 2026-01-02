@@ -107,7 +107,8 @@ if df is None or df.empty:
 st.sidebar.header("🎛️ Filters")
 
 # 1. Title Search
-search_title = st.sidebar.text_input("Search Title", placeholder="e.g. Bohemian Rhapsody")
+all_titles = sorted(df['title'].dropna().unique().tolist())
+search_title = st.sidebar.multiselect("Filter Titles", options=all_titles)
 
 # 2. Artist Filter
 all_artists = sorted(df['artist'].dropna().unique().tolist())
@@ -133,16 +134,16 @@ all_modes = sorted(df['mode'].dropna().unique().tolist())
 selected_modes = st.sidebar.multiselect("Filter Modes", options=all_modes)
 
 # 6. BPM Filter
-valid_bpm = df['bpm'].dropna()
-if not valid_bpm.empty:
-    min_bpm = int(valid_bpm.min())
-    max_bpm = int(valid_bpm.max())
-    if min_bpm == max_bpm:
-        max_bpm += 1
-    bpm_range = st.sidebar.slider("BPM Range", min_value=min_bpm, max_value=max_bpm, value=(min_bpm, max_bpm))
-else:
-    bpm_range = None
-    st.sidebar.info("BPM data unavailable")
+# valid_bpm = df['bpm'].dropna()
+# if not valid_bpm.empty:
+#     min_bpm = int(valid_bpm.min())
+#     max_bpm = int(valid_bpm.max())
+#     if min_bpm == max_bpm:
+#         max_bpm += 1
+#     bpm_range = st.sidebar.slider("BPM Range", min_value=min_bpm, max_value=max_bpm, value=(min_bpm, max_bpm))
+# else:
+#     bpm_range = None
+#     st.sidebar.info("BPM data unavailable")
 
 # --- Apply Filters ---
 filtered_df = df.copy()
@@ -162,15 +163,15 @@ if selected_keys:
 if selected_modes:
     filtered_df = filtered_df[filtered_df['mode'].isin(selected_modes)]
 
-if bpm_range:
-    # Only filter if the user has actually adjusted the sliders
-    # This prevents dropping rows with NaN BPMs when the filter is at default settings
-    is_default_range = (bpm_range[0] == min_bpm) and (bpm_range[1] == max_bpm)
-    if not is_default_range:
-        filtered_df = filtered_df[
-            (filtered_df['bpm'] >= bpm_range[0]) & 
-            (filtered_df['bpm'] <= bpm_range[1])
-        ]
+# if bpm_range:
+#     # Only filter if the user has actually adjusted the sliders
+#     # This prevents dropping rows with NaN BPMs when the filter is at default settings
+#     is_default_range = (bpm_range[0] == min_bpm) and (bpm_range[1] == max_bpm)
+#     if not is_default_range:
+#         filtered_df = filtered_df[
+#             (filtered_df['bpm'] >= bpm_range[0]) & 
+#             (filtered_df['bpm'] <= bpm_range[1])
+#         ]
 
 st.title("🎵 HookTheory Advanced Analytics")
 st.markdown("Deep dive into the structural DNA of popular music.")
