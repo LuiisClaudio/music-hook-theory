@@ -22,7 +22,24 @@ def main():
         # 5. Trending Songs
         {"description": "Trending Songs", "params": {"trend": "true"}},
         {"description": "Trending Songs (Discovery Mode)", "params": {"trend": "true", "discovery": "true"}},
+
+        # 6. Additional Test Cases
+        {"description": "High Melodic Complexity", "params": {"complexity_melodic": "high"}},
+        {"description": "Specific Key & Mode (A Minor)", "params": {"key": "A", "mode": "Minor"}},
+        {"description": "High Chord-Melody Tension", "params": {"tension": "high"}},
+        {"description": "High Progression Novelty", "params": {"novelty": "high"}},
+        {"description": "Complex Rock Discovery", "params": {"genre": "Rock", "complexity_chord": "high"}},
     ]
+
+    # 7. Top 20 Pop Artists
+    pop_artists = [
+        "Taylor Swift", "Ed Sheeran", "Ariana Grande", "Justin Bieber", "Katy Perry",
+        "Rihanna", "Lady Gaga", "Bruno Mars", "The Weeknd", "Dua Lipa",
+        "Harry Styles", "Shawn Mendes", "Miley Cyrus", "Selena Gomez", "Billie Eilish",
+        "Maroon 5", "Coldplay", "Beyonce", "Drake", "Post Malone"
+    ]
+    for artist in pop_artists:
+        test_cases.append({"description": f"Artist Filter ({artist})", "params": {"artist": artist}})
 
     print(f"Starting execution of {len(test_cases)} test cases...")
     print("\n") 

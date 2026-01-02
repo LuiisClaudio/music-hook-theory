@@ -3,4 +3,6 @@ pandas
 python-dotenv
 beautifulsoup4
 music21
-
+streamlit
+plotly
+scikit-learn
