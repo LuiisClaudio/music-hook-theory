@@ -33,9 +33,7 @@ def extract_genre(content):
     match = re.search(r"(?:genre|style)[:\s]+([A-Za-z\s\-]+)", content, re.IGNORECASE)
     return match.group(1).strip() if match else None
 
-def extract_trend_probability(content):
-    match = re.search(r"trend[_\s]?probability[:\s]+(\d+(?:\.\d+)?)", content, re.IGNORECASE)
-    return float(match.group(1)) if match else None
+
 
 def extract_chord_melody_tension(content):
     match = re.search(r"Chord-Melody Tension\s*(\d+)", content)
@@ -154,7 +152,6 @@ def extract_music_info_from_text(content):
         "genre": extract_genre(content),
         "chord_complexity": extract_chord_complexity(content),
         "melodic_complexity": extract_melodic_complexity(content),
-        "trend_probability": extract_trend_probability(content),
         "chord_melody_tension": extract_chord_melody_tension(content),
         "chord_progression_novelty": extract_chord_progression_novelty(content),
         "chord_bass_melody": extract_chord_bass_melody(content),
@@ -183,7 +180,7 @@ def extract_music_info(file_path):
     """
     Extract music information from HookTheory text content dump.
     Searches for: bpm, key_tonic, mode, genre, chord_complexity, 
-    melodic_complexity, trend_probability
+    melodic_complexity
     """
     
     with open(file_path, "r", encoding="utf-8") as f:
@@ -203,7 +200,7 @@ def main():
     # Print requested fields
     print("\n=== Requested Fields ===")
     requested_fields = ["bpm", "key_tonic", "mode", "genre", 
-                        "chord_complexity", "melodic_complexity", "trend_probability", "chord_melody_tension", "chord_progression_novelty", "chord_bass_melody",
+                        "chord_complexity", "melodic_complexity", "chord_melody_tension", "chord_progression_novelty", "chord_bass_melody",
                         "type", "roman_numeral", "absolute_root", "inversion", "chord_progression"]
     
     for field in requested_fields:

@@ -86,7 +86,7 @@ class HookTheoryClient:
             'absolute_root': None,
             'inversion': None,
 
-            'chord_progression': None,
+            'chord_bass_melody': None
         }
         
         # Song URL validation
@@ -191,8 +191,7 @@ class HookTheoryClient:
                     'melodic_complexity': meta.get('melodic_complexity'),
                     'chord_melody_tension': meta.get('chord_melody_tension'),
                     'chord_progression_novelty': meta.get('chord_progression_novelty'),
-                    'chord_bass_melody': meta.get('chord_bass_melody'),
-                    'trend_probability': None # Placeholder
+                    'chord_bass_melody': meta.get('chord_bass_melody')
                 }
 
             # EVENTS/CHORDS TABLE (Flattened)
@@ -277,8 +276,7 @@ class HookTheoryClient:
             'melodic_complexity': meta.get('melodic_complexity'),
             'chord_melody_tension': meta.get('chord_melody_tension'),
             'chord_progression_novelty': meta.get('chord_progression_novelty'),
-            'chord_bass_melody': meta.get('chord_bass_melody'),
-            'trend_probability': meta.get('trend_probability')
+            'chord_bass_melody': meta.get('chord_bass_melody')
         }
         
         # 3. Construct Events Records directly checks
