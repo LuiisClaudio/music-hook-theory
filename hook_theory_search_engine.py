@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
 from hook_theory_api import HookTheoryClient
+import time
+import hashlib
 
 # Load environment variables
 load_dotenv()
@@ -194,6 +196,30 @@ def crawl_charts(limit=20):
     url = "https://www.hooktheory.com/theorytab/charts"
     return crawl_list_page(url)[:limit]
 
+def crawl_common_progressions(client, seeds=None):
+    if seeds is None:
+        seeds = ["1,5,6,4", "1,4,5,1", "1,6,4,5"]
+    elif isinstance(seeds, str):
+        seeds = [seeds]
+        
+    all_songs_data = []
+    
+    for seed in seeds:
+        print(f"Fetching songs for progression: {seed}")
+        songs = client.fetch_songs_by_progression(seed)
+        print(f"Found {len(songs)} songs.")
+        
+        for song in songs:
+            s_id = song.get('id')
+            if not s_id:
+                 s_id = int(hashlib.md5(f"{song['artist']}{song['song']}".encode()).hexdigest(), 16) % (10**8)
+                 song['id'] = s_id
+            
+            song['queried_progression'] = seed
+            all_songs_data.append(song)
+        time.sleep(1)
+    return all_songs_data
+
 def run_search(params):
     """
     Executes the search and processing logic with the given parameters.
@@ -220,7 +246,7 @@ def run_search(params):
     if params.get('progression'):
         print(f"Searching by Progression: {params['progression']}")
         try:
-            results = client.fetch_songs_by_progression(params['progression'])
+            results = crawl_common_progressions(client, seeds=params['progression'])
             # Extract URLs from API results
             for r in results:
                 if r.get('url'):
@@ -236,7 +262,12 @@ def run_search(params):
         urls = crawl_search_results(params)
         candidate_urls.extend(urls)
 
-    # Source C: Passive/Discovery (Only complexity/theory provided)
+    # Source C: Trending
+    if params.get('trend'):
+        print("Searching Trending Songs...")
+        candidate_urls.extend(crawl_charts())
+
+    # Source D: Passive/Discovery (Only complexity/theory provided)
     # If we have NO candidates yet, but have filters, we must browse Charts/Browse to find candidates.
     if not candidate_urls and not (params.get('artist') or params.get('genre') or params.get('song') or params.get('progression')):
         if any(k.startswith('complexity') for k in params) or params.get('key') or params.get('scale'):
@@ -296,14 +327,18 @@ def main():
     parser.add_argument("--complexity_novelty", help="Chord Progression Novelty")
     parser.add_argument("--complexity_bass", help="Bass Melody")
 
+    # Group 5: Discovery
+    parser.add_argument("--trend", action="store_true", help="Search for trending songs")
+
     args = parser.parse_args()
     params = {k: v for k, v in vars(args).items() if v is not None}
     
     if not params:
-        print("No args provided. Using Default Test (Artist=Nirvana).")
-        params = {'artist': 'Nirvana'}
-    
-    run_search(params)
+        # print("No args provided. Using Default Test (Artist=Nirvana).")
+        # params = {'artist': 'Nirvana'}
+        return
+    else:
+        run_search(params)
 
 if __name__ == "__main__":
     main()

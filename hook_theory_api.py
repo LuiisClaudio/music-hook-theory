@@ -114,25 +114,7 @@ class HookTheoryClient:
 
 
 
-    def crawl_common_progressions(self):
-        seeds = ["1,5,6,4", "1,4,5,1", "1,6,4,5"] 
-        all_songs_data = []
-        
-        for seed in seeds:
-            print(f"Fetching songs for progression: {seed}")
-            songs = self.fetch_songs_by_progression(seed)
-            print(f"Found {len(songs)} songs.")
-            
-            for song in songs:
-                s_id = song.get('id')
-                if not s_id:
-                     s_id = int(hashlib.md5(f"{song['artist']}{song['song']}".encode()).hexdigest(), 16) % (10**8)
-                     song['id'] = s_id
-                
-                song['queried_progression'] = seed
-                all_songs_data.append(song)
-            time.sleep(1)
-        return all_songs_data
+
 
     def calculate_spiral_array_tension(self, chord_symbol: str, key_tonic: str, mode: str) -> float:
         """
@@ -277,20 +259,20 @@ def main():
     except Exception:
         return
 
-    print("Starting data fetch...")
-    raw_data = client.crawl_common_progressions()
+    # print("Starting data fetch...")
+    # raw_data = client.crawl_common_progressions()
     
-    print(f"Collected {len(raw_data)} raw entries.")
+    # print(f"Collected {len(raw_data)} raw entries.")
     
-    df_songs, df_events = client.process_data(raw_data)
+    # df_songs, df_events = client.process_data(raw_data)
     
-    # Save
-    df_songs.to_csv('hooktheory_songs.csv', index=False)
-    df_events.to_csv('hooktheory_chords.csv', index=False) 
+    # # Save
+    # df_songs.to_csv('hooktheory_songs.csv', index=False)
+    # df_events.to_csv('hooktheory_chords.csv', index=False) 
     
-    print("\nSaved tables to CSV.")
-    print("Songs:", len(df_songs))
-    print("Events (Chords flattened):", len(df_events))
+    # print("\nSaved tables to CSV.")
+    # print("Songs:", len(df_songs))
+    # print("Events (Chords flattened):", len(df_events))
     
     # Example usage of the new function
     url = "https://www.hooktheory.com/theorytab/view/scorpions/still-loving-you"
