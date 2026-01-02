@@ -235,6 +235,7 @@ class HookTheoryClient:
                     'tension_strain': tension
                 })
 
+        print(f"\n\nEvents records: {events_records}\n\n")
         # Create DataFrames
         df_songs = pd.DataFrame(list(songs_dict.values()))
         df_events = pd.DataFrame(events_records)
@@ -282,7 +283,11 @@ class HookTheoryClient:
         
         # 3. Construct Events Records directly checks
         events_records = []
-        path_str = meta.get('chord_progression', '')
+        str_numerals = meta.get('roman_numeral')
+        if isinstance(str_numerals, list):
+            path_str = ",".join(str_numerals)
+        else:
+            path_str = str_numerals
         
         if path_str:
             chord_numerals = [c.strip() for c in path_str.split(',') if c.strip()]
