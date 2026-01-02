@@ -19,6 +19,16 @@ def extract_bpm(content):
     match = re.search(r"(?:bpm|tempo)[:\s]+(\d+)", content, re.IGNORECASE)
     return int(match.group(1)) if match else None
 
+def extract_key_tonic(content):
+    return None
+    match = re.search(r"(?:key|tonic)[:\s]+([A-G][♭♯#b]?)", content, re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
+def extract_mode(content):
+    return None
+    match = re.search(r"(?:mode)[:\s]+([A-Za-z\s\-]+)", content, re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
 def extract_genre(content):
     match = re.search(r"(?:genre|style)[:\s]+([A-Za-z\s\-]+)", content, re.IGNORECASE)
     return match.group(1).strip() if match else None
@@ -66,35 +76,7 @@ def extract_type(content):
         return "Interlude"
     return "Unknown"
 
-def extract_start_measure(content):
-    # Multiple patterns for start measure
-    patterns = [
-        r"Start Measure\s*[:\-]?\s*(\d+)",
-        r"measures?\s+(\d+)\s*[-–to]+\s*\d+",
-        r"m\.?\s*(\d+)\s*[-–to]+\s*\d+",
-        r"from\s+measure\s+(\d+)",
-        r"begins?\s+(?:at\s+)?(?:measure\s+)?(\d+)"
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, content, re.IGNORECASE)
-        if match:
-            return int(match.group(1))
-    return None
 
-def extract_end_measure(content):
-    # Multiple patterns for end measure
-    patterns = [
-        r"End Measure\s*[:\-]?\s*(\d+)",
-        r"measures?\s+\d+\s*[-–to]+\s*(\d+)",
-        r"m\.?\s*\d+\s*[-–to]+\s*(\d+)",
-        r"to\s+measure\s+(\d+)",
-        r"ends?\s+(?:at\s+)?(?:measure\s+)?(\d+)"
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, content, re.IGNORECASE)
-        if match:
-            return int(match.group(1))
-    return None
 
 def extract_roman_numeral(content):
     # Match Roman numeral chords: I, ii, IV, V7, bVII, #iv, etc.
@@ -167,8 +149,8 @@ def extract_music_info_from_text(content):
     """
     results = {
         "bpm": extract_bpm(content),
-        "key_tonic": None,
-        "mode": None,
+        "key_tonic": extract_key_tonic(content),
+        "mode": extract_mode(content),
         "genre": extract_genre(content),
         "chord_complexity": extract_chord_complexity(content),
         "melodic_complexity": extract_melodic_complexity(content),
@@ -178,8 +160,6 @@ def extract_music_info_from_text(content):
         "chord_bass_melody": extract_chord_bass_melody(content),
         
         "type": extract_type(content),
-        "start_measure": extract_start_measure(content),
-        "end_measure": extract_end_measure(content),
         "roman_numeral": extract_roman_numeral(content),
         "absolute_root": extract_absolute_root(content),
         "inversion": extract_inversion(content),
@@ -224,7 +204,7 @@ def main():
     print("\n=== Requested Fields ===")
     requested_fields = ["bpm", "key_tonic", "mode", "genre", 
                         "chord_complexity", "melodic_complexity", "trend_probability", "chord_melody_tension", "chord_progression_novelty", "chord_bass_melody",
-                        "type", "start_measure", "end_measure", "roman_numeral", "absolute_root", "inversion", "chord_progression"]
+                        "type", "roman_numeral", "absolute_root", "inversion", "chord_progression"]
     
     for field in requested_fields:
         value = info.get(field)

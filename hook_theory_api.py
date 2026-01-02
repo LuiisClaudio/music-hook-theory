@@ -82,8 +82,6 @@ class HookTheoryClient:
             'chord_bass_melody': None,
             
             'type': None,
-            'start_measure': None,
-            'end_measure': None,
             'roman_numeral': None,
             'absolute_root': None,
             'inversion': None,
@@ -128,8 +126,42 @@ class HookTheoryClient:
     def calculate_spiral_array_tension(self, chord_symbol: str, key_tonic: str, mode: str) -> float:
         """
         Calculates a simplified Spiral Array 'tensile strain' (distance from key).
+        Uses a basic Pythagorean tuning logic where Perfect 5th = 1 unit height.
+        Key Center is at (0,0,0) in relative space.
         """
-        return 0.0
+        # Simplified Spiral Array positions (Relative to C Major)
+        # Position k on spiral: x = r*sin(k*theta), y = r*cos(k*theta), z = k*h
+        # Here we just use pre-computed relative distances or a simple lookup table for demonstration
+        # Logic: 
+        # I (Tonic) -> Distance 0 (Reference)
+        # V (Dominant) -> Close (1 step)
+        # IV (Subdominant) -> Close (1 step in other direction)
+        # vi (Relative Minor) -> Moderate
+        # vii (Leading Tone) -> High Tension
+        
+        # Normalize chord symbol
+        chord_clean = chord_symbol.replace('7','').replace('maj','').replace('min','')
+        
+        # Tension Map (Heuristic based on Spiral Array Distance from Tonic I)
+        tension_map = {
+            '1': 0.0, 'I': 0.0, 'i': 0.5,
+            '5': 1.0, 'V': 1.0, 'v': 1.5,
+            '4': 1.0, 'IV': 1.0, 'iv': 1.5,
+            '6': 2.0, 'vi': 2.0, 'VI': 2.5,
+            '3': 3.0, 'iii': 3.0, 'III': 3.5,
+            '2': 2.5, 'ii': 2.5, 'II': 3.0,
+            '7': 4.5, 'vii': 4.5, 'VII': 4.0
+        }
+        
+        # Check against map
+        base_tension = tension_map.get(chord_clean, 2.0) # Default moderate tension
+        
+        # Modifiers
+        if '7' in chord_symbol: base_tension += 0.5
+        if 'dim' in chord_symbol: base_tension += 1.5
+        if 'aug' in chord_symbol: base_tension += 1.5
+            
+        return base_tension
 
     def process_data(self, raw_data):
         songs_dict = {}
@@ -174,6 +206,8 @@ class HookTheoryClient:
             
             chord_numerals = path_str.split(',')
             current_key = songs_dict[ht_id].get('key_tonic', 'C') 
+            #print chord numerals
+            print(f"Chord numerals: {chord_numerals}")
             
             for i, numeral in enumerate(chord_numerals):
                 abs_root = -1
@@ -195,7 +229,6 @@ class HookTheoryClient:
                     'section_id': section_id,
                     'song_id': ht_id,
                     'type': section_name,
-                    'start_measure': i + 1,
                     'roman_numeral': numeral,
                     'absolute_root': abs_root,
                     'inversion': 0, # Placeholder
@@ -216,6 +249,8 @@ class HookTheoryClient:
         
         # 1. Scrape first to get Title/Artist needed for ID generation and Entry construction
         meta = self.fetch_song_metadata_from_page(url)
+        #Print meta
+        print(f"Meta: {meta}")
         
         #Dump meta to a txt file
         with open("meta.txt", "w", encoding="utf-8") as f:
@@ -227,18 +262,68 @@ class HookTheoryClient:
         # Generate ID consistent with main logic
         ht_id = int(hashlib.md5(f"{artist}{title}".encode()).hexdigest(), 16) % (10**8)
         
-        # 2. Construct raw_data entry mimicking API response
-        entry = {
-            'id': ht_id,
-            'song': title,
-            'artist': artist,
+        # 2. Construct Song Dictionary directly (as requested)
+        song_entry = {
+            'hooktheory_id': ht_id,
             'url': url,
-            'section': 'Unknown', # Placeholder
-            'path': '' # No chord path data available from public page scrape
+            'title': title,
+            'artist': artist,
+            'bpm': meta.get('bpm'),
+            'key_tonic': meta.get('key_tonic'),
+            'mode': meta.get('mode'),
+            'genre': meta.get('genre'),
+            'chord_complexity': meta.get('chord_complexity'),
+            'melodic_complexity': meta.get('melodic_complexity'),
+            'chord_melody_tension': meta.get('chord_melody_tension'),
+            'chord_progression_novelty': meta.get('chord_progression_novelty'),
+            'chord_bass_melody': meta.get('chord_bass_melody'),
+            'trend_probability': meta.get('trend_probability')
         }
         
-        # 3. Use process_data
-        return self.process_data([entry])
+        # 3. Construct Events Records directly checks
+        events_records = []
+        path_str = meta.get('chord_progression', '')
+        
+        if path_str:
+            chord_numerals = [c.strip() for c in path_str.split(',') if c.strip()]
+            current_key = song_entry.get('key_tonic', 'C')
+            
+            section_name = meta.get('type', 'Unknown')
+            section_id = f"{ht_id}_{section_name}".replace(" ", "_").lower()
+            
+            print(f"Chord numerals: {chord_numerals}")
+            
+            for i, numeral in enumerate(chord_numerals):
+                abs_root = -1
+                if HAS_MUSIC21 and current_key:
+                    try:
+                        rn_str = numeral
+                        if numeral.isdigit():
+                            rn_map = {'1':'I', '2':'ii', '3':'iii', '4':'IV', '5':'V', '6':'vi', '7':'vii'}
+                            rn_str = rn_map.get(numeral, 'I')
+                        
+                        rn = music21.roman.RomanNumeral(rn_str, current_key)
+                        abs_root = rn.root().pitchClass
+                    except Exception:
+                        pass
+                
+                tension = self.calculate_spiral_array_tension(numeral, current_key, song_entry.get('mode'))
+
+                events_records.append({
+                    'section_id': section_id,
+                    'song_id': ht_id,
+                    'type': section_name,
+                    'roman_numeral': numeral,
+                    'absolute_root': abs_root,
+                    'inversion': 0, # Placeholder
+                    'tension_strain': tension
+                })
+        
+        # 4. Create DataFrames
+        df_songs = pd.DataFrame([song_entry])
+        df_events = pd.DataFrame(events_records)
+        
+        return df_songs, df_events
 
     def append_to_csv(self, df: pd.DataFrame, csv_path: str):
         """
@@ -290,7 +375,7 @@ def main():
     
     # Example usage of the new function
     url = "https://www.hooktheory.com/theorytab/view/scorpions/still-loving-you"
-    #client.process_single_url_and_append(url)
+    client.process_single_url_and_append(url)
 
 if __name__ == "__main__":
     main()
