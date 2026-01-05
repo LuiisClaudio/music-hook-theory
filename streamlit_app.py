@@ -6,6 +6,13 @@ import plotly.graph_objects as go
 from dataframe_functions import prepare_data
 import code_visualization as cv
 
+# Set page config
+st._config.set_option('theme.base', 'light')
+st._config.set_option('theme.primaryColor', '#4f46e5')
+st._config.set_option('theme.backgroundColor', '#f8f9fa')
+st._config.set_option('theme.secondaryBackgroundColor', '#ffffff')
+st._config.set_option('theme.textColor', '#212529')
+
 # --- Page Configuration ---
 st.set_page_config(
     page_title="HookTheory Music Analytics",
@@ -18,30 +25,30 @@ st.set_page_config(
 # Clean, Modern, Minimalist Light Theme
 st.markdown("""
 <style>
-    /* Main Background - Clean White/Off-White */
+    /* Main Background */
     .stApp {
-        background-color: #f8f9fa;
-        color: #212529;
+        background-color: var(--background-color);
+        color: var(--text-color);
     }
     
-    /* Sidebar - Subtle Light Grey */
+    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e9ecef;
+        background-color: var(--secondary-background-color);
+        border-right: 1px solid var(--secondary-background-color);
     }
     
-    /* Headers - Dark distinctive sans-serif */
+    /* Headers */
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: #1a1a1a;
+        color: var(--text-color);
         font-weight: 700;
         letter-spacing: -0.02em;
     }
     
-    /* Metric Cards - Modern Card Style */
+    /* Metric Cards */
     div[data-testid="metric-container"] {
-        background-color: #ffffff;
-        border: 1px solid #e9ecef;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
         border-radius: 12px;
         padding: 16px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
@@ -50,14 +57,15 @@ st.markdown("""
     div[data-testid="metric-container"]:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border-color: #dee2e6;
+        border-color: var(--primary-color);
     }
     div[data-testid="metric-label"] {
-        color: #6c757d;
+        color: var(--text-color);
+        opacity: 0.7;
         font-weight: 500;
     }
     div[data-testid="metric-value"] {
-        color: #212529;
+        color: var(--text-color);
         font-weight: 700;
     }
     
@@ -66,9 +74,9 @@ st.markdown("""
         background: transparent !important;
     }
     
-    /* Buttons - Modern Primary (Indigo/Purple) */
+    /* Buttons */
     .stButton>button {
-        background-color: #4f46e5;
+        background-color: var(--primary-color);
         color: white;
         border-radius: 8px;
         border: none;
@@ -77,12 +85,13 @@ st.markdown("""
         transition: background-color 0.2s;
     }
     .stButton>button:hover {
-        background-color: #4338ca;
+        opacity: 0.9;
     }
     
     /* Inputs */
     .stTextInput>div>div>input {
         border-radius: 8px;
+        color: var(--text-color);
     }
 </style>
 """, unsafe_allow_html=True)
