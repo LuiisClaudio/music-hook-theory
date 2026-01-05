@@ -1,6 +1,8 @@
 # 🎵 Music Hook Theory Analytics
 ### Decrypting the Structural DNA of Popular Music
 
+## Dashboard Link: https://hook-theory-dashboard.streamlit.app/
+
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
 ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
@@ -13,6 +15,8 @@
 **Music Hook Theory Analytics** is a full-stack data science project that explores the hidden mathematical relationships in popular music. By scraping and analyzing data from HookTheory, this project quantifies abstract musical concepts—such as "tension," "complexity," and "novelty"—to visualize what makes a hit song work.
 
 This repository demonstrates an end-to-end **Data Analyst** workflow: from **ETL** (extracting data via custom scraping) to **Feature Engineering** (calculating music theory metrics) and **Interactive Visualization** (a deployed Streamlit dashboard).
+
+**New in v2.0**: The dashboard now features a strong emphasis on **Data Storytelling**. Each visualization connects complex music theory to standard data concepts, complete with "Visual Guides" and "Strategic Insights" to helping non-musicians understand the data narrative.
 
 ---
 
@@ -43,6 +47,7 @@ To translate art into data, I engineered several novel metrics:
 ### 3. Visualization Layer
 *   **Framework**: `Streamlit` + `Plotly Express` / `Graph Objects`.
 *   **Design Philosophy**: A "Day Light" aesthetic using a consistent color palette (Warm Amber for Major, Cool Indigo for Minor) to ensure accessibility and professional presentation.
+*   **Data Storytelling**: Explicit "How to Read" guides and "Why it Matters" captions for every chart.
 
 ---
 
@@ -54,22 +59,23 @@ To translate art into data, I engineered several novel metrics:
 ├── 📜 hook_theory_api.py          # ETL Script & Scraper (The "Controller/Model")
 ├── 📜 dataframe_functions.py      # Data cleaning and utility functions
 ├── 📜 search_music_info.py        # NLP regex for text mining metadata
-├── 📊 hooktheory_songs.csv       # Processed Dataset (Songs Metadata)
-└── 📊 hooktheory_chords.csv      # Processed Dataset (Chord Events)
+├── 📊 hooktheory_songs.csv        # Processed Dataset (Songs Metadata)
+└── 📊 hooktheory_chords.csv       # Processed Dataset (Chord Events)
 ```
 
 ---
 
 ## 📊 Dashboard Preview
 
-The dashboard maps music theory concepts to interactive data visuals:
+The dashboard maps music theory concepts to interactive data visuals. It is divided into 5 Narrative Modules:
 
-| Module | Purpose | Visualization Type |
+| Module | Storytelling Goal | Visualization Type |
 | :--- | :--- | :--- |
-| **The Tonal Landscape** | Visualize the distribution of Keys and Modes | Sunburst Charts, Polar Plots |
-| **Metric Signatures** | Deep dive into a single song's metrics | Radar Charts, Histograms |
-| **Comparative Musicology** | Head-to-head song comparison | Dumbbell Charts, Diverging Bars |
-| **High-Dimensional Discovery** | Finding clusters in complex data | 3D Scatter Plots, PCA Clusters |
+| **A. The Tonal Landscape** | "What is the emotional baseline of the library?" | Sunburst Charts, Polar Plots |
+| **B. Metric Signatures** | "What makes this specific song unique?" | Radar Charts, Histograms, Ridge Plots |
+| **C. Comparative Musicology** | "How does Artist X differ from Artist Y?" | Dumbbell Charts, Diverging Bars |
+| **D. Correlation & Causality** | "Does high complexity force trade-offs?" | Parallel Coordinates, Permutation Matrices |
+| **E. High-Dimensional Discovery** | "Can AI find hidden sub-genres?" | 3D Scatter Plots, PCA Clusters |
 
 ---
 
