@@ -36,11 +36,11 @@ def apply_chart_style(fig, title=None):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         modebar=dict(bgcolor='rgba(0,0,0,0)', color='#64748b'),
-        font=dict(family="Inter, sans-serif", color='#1e293b'), # Slate-800
-        title=dict(text=title, font=dict(size=20, color='#0f172a', weight='bold')) if title else None,
+        font=dict(family="Inter, sans-serif"),
+        title=dict(text=title, font=dict(size=20, weight='bold')) if title else None,
         margin=dict(l=20, r=20, t=60, b=20),
-        xaxis=dict(showgrid=True, gridcolor='#e2e8f0', linecolor='#cbd5e1'), # Slate-200/300
-        yaxis=dict(showgrid=True, gridcolor='#e2e8f0', linecolor='#cbd5e1')
+        xaxis=dict(showgrid=True, gridcolor='rgba(128, 128, 128, 0.2)', linecolor='rgba(128, 128, 128, 0.2)'),
+        yaxis=dict(showgrid=True, gridcolor='rgba(128, 128, 128, 0.2)', linecolor='rgba(128, 128, 128, 0.2)')
     )
     return fig
 
