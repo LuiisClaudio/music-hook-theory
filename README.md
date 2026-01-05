@@ -3,6 +3,14 @@
 
 ## Dashboard Link: https://hook-theory-dashboard.streamlit.app/
 
+---
+
+## 📊 Dashboard Preview
+
+![Dashboard Screenshot](assets/Screenshot.png)
+
+---
+
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
 ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
@@ -66,6 +74,8 @@ To translate art into data, I engineered several novel metrics:
 ---
 
 ## 📊 Dashboard Preview
+
+![Dashboard Screenshot](assets/Screenshot.png)
 
 The dashboard maps music theory concepts to interactive data visuals. It is divided into 5 Narrative Modules:
 
