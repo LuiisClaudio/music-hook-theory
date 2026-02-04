@@ -217,7 +217,7 @@ with col1:
     **Insight**: Larger slices indicate dominant tonal families. Use this to see if the library leans towards specific root notes.
     """)
     fig1 = cv.plot_sunburst_tonal_hierarchy(plot_df)
-    if fig1: st.plotly_chart(fig1, use_container_width=True)
+    if fig1: st.plotly_chart(fig1, width="stretch")
 
 with col2:
     st.subheader("2. Circle of Fifths Density")
@@ -226,7 +226,7 @@ with col2:
     **Insight**: Clusters indicate preferred harmonic regions. A skew towards the right (G, D, A) suggests 'sharp' keys, while the left (F, Bb, Eb) suggests 'flat' keys.
     """)
     fig2 = cv.plot_polar_circle_of_fifths(plot_df)
-    if fig2: st.plotly_chart(fig2, use_container_width=True)
+    if fig2: st.plotly_chart(fig2, width="stretch")
 
 col3, col4 = st.columns(2)
 
@@ -237,7 +237,7 @@ with col3:
     **Insight**: A basic proxy for the library's mood. A 50/50 split indicates emotional balance.
     """)
     fig3 = cv.plot_modal_donut(plot_df)
-    if fig3: st.plotly_chart(fig3, use_container_width=True)
+    if fig3: st.plotly_chart(fig3, width="stretch")
     
 with col4:
     st.subheader("4. Key Signature Complexity")
@@ -246,7 +246,7 @@ with col4:
     **Insight**: Do "harder" keys (with many sharps/flats like F#) result in more complex or simpler songs? 
     """)
     fig4 = cv.plot_key_complexity_box(plot_df)
-    if fig4: st.plotly_chart(fig4, use_container_width=True)
+    if fig4: st.plotly_chart(fig4, width="stretch")
 
 
 # --- MODULE B: Metric Signatures ---
@@ -272,7 +272,7 @@ with col5:
         **Insight**: Spikes extending outward reveal the song's standout traits compared to the average.
         """)
         fig5 = cv.plot_song_dna_radar(plot_df, selected_song, metrics_list)
-        if fig5: st.plotly_chart(fig5, use_container_width=True)
+        if fig5: st.plotly_chart(fig5, width="stretch")
 
 with col6:
     st.subheader("7. Tension vs Resolution")
@@ -281,7 +281,7 @@ with col6:
     **Insight**: High-Tension/High-Complexity (Top-Right) usually indicates Jazz/Fusion. Low-Tension/Low-Complexity (Bottom-Left) is typical for basic Pop/Folk.
     """)
     fig7 = cv.plot_tension_vs_resolution(plot_df)
-    if fig7: st.plotly_chart(fig7, use_container_width=True)
+    if fig7: st.plotly_chart(fig7, width="stretch")
 
 st.subheader("6. Global Metric Distributions")
 if selected_song:
@@ -290,7 +290,7 @@ if selected_song:
     **Insight**: Is this song an outlier or does it sit safely in the middle of the pack?
     """)
     fig6 = cv.plot_global_metric_histograms(plot_df, selected_song, metrics_list)
-    if fig6: st.plotly_chart(fig6, use_container_width=True)
+    if fig6: st.plotly_chart(fig6, width="stretch")
 
 st.subheader("8. Bass Line Independence (Top Artists)")
 st.caption("""
@@ -298,7 +298,7 @@ st.caption("""
 **Insight**: Wider distributions indicate artists who use more inversions and complex slash-chords (e.g., C/G), showing mastery of voice leading.
 """)
 fig8 = cv.plot_bass_line_ridge(plot_df)
-if fig8: st.plotly_chart(fig8, use_container_width=True)
+if fig8: st.plotly_chart(fig8, width="stretch")
 
 
 # --- MODULE C: Comparative Musicology ---
@@ -320,7 +320,7 @@ with col_c1:
         **Insight**: Long lines represent major differences in style. Short lines mean the songs are structural siblings.
         """)
         fig9 = cv.plot_face_off_dumbbell(plot_df, s1, s2, metrics_list)
-        if fig9: st.plotly_chart(fig9, use_container_width=True)
+        if fig9: st.plotly_chart(fig9, width="stretch")
     else:
         st.info("Need at least 2 songs for comparison.")
 
@@ -332,7 +332,7 @@ with col_c2:
         **Insight**: What makes *{selected_song}* unique? Pink bars > Average, Blue bars < Average. 
         """)
         fig11 = cv.plot_diverging_metric_deviation(plot_df, selected_song, metrics_list)
-        if fig11: st.plotly_chart(fig11, use_container_width=True)
+        if fig11: st.plotly_chart(fig11, width="stretch")
 
 st.subheader("10. Artist Complexity Evolution")
 st.caption("""
@@ -340,7 +340,7 @@ st.caption("""
 **Insight**: Who are the "Complex" artists? (Top-Right). Who helps define the "Pop Standard"? (Bottom-Left).
 """)
 fig10 = cv.plot_artist_complexity_evolution(plot_df)
-if fig10: st.plotly_chart(fig10, use_container_width=True)
+if fig10: st.plotly_chart(fig10, width="stretch")
 
 st.subheader("12. The Flow of Music (Parallel Categories)")
 st.caption("""
@@ -348,7 +348,7 @@ st.caption("""
 **Insight**: Traces the most common "recipes" for a song. E.g., Do Minor keys usually lead to High Complexity?
 """)
 fig12 = cv.plot_parallel_categories_flow(plot_df)
-if fig12: st.plotly_chart(fig12, use_container_width=True)
+if fig12: st.plotly_chart(fig12, width="stretch")
 
 
 # --- MODULE D: Correlation & Causality ---
@@ -365,7 +365,7 @@ st.caption("""
 **Insight**: Look for "Scissors" (lines crossing efficiently) which indicate inverse relationships.
 """)
 fig13 = cv.plot_parallel_coordinates(plot_df, metrics_list)
-if fig13: st.plotly_chart(fig13, use_container_width=True)
+if fig13: st.plotly_chart(fig13, width="stretch")
 
 col_d1, col_d2 = st.columns(2)
 with col_d1:
@@ -375,7 +375,7 @@ with col_d1:
     **Insight**: Which metrics are effectively the same thing? (Dark Red). Which are sworn enemies? (Dark Blue).
     """)
     fig14 = cv.plot_correlation_heatmap(plot_df, metrics_list)
-    if fig14: st.plotly_chart(fig14, use_container_width=True)
+    if fig14: st.plotly_chart(fig14, width="stretch")
     
 with col_d2:
     st.subheader("16. Topography of Genre (Density)")
@@ -384,7 +384,7 @@ with col_d2:
     **Insight**: Peaks represent the "Standard Sound"—the most common combination of Melody and Chord complexity.
     """)
     fig16 = cv.plot_density_contour_topography(plot_df)
-    if fig16: st.plotly_chart(fig16, use_container_width=True)
+    if fig16: st.plotly_chart(fig16, width="stretch")
 
 st.subheader("15. Compositional Focus Ternary Plot")
 st.caption("""
@@ -392,7 +392,7 @@ st.caption("""
 **Insight**: Songs near a corner are "specialists" in that trait. Songs in the center are "generalists".
 """)
 fig15 = cv.plot_ternary_composition_focus(plot_df)
-if fig15: st.plotly_chart(fig15, use_container_width=True)
+if fig15: st.plotly_chart(fig15, width="stretch")
 
 
 # --- MODULE E: High-Dimensional Discovery ---
@@ -412,7 +412,7 @@ with col_e1:
     **Insight**: Reveals data structures that are invisible in 2D. Look for distinct clouds of floating points.
     """)
     fig17 = cv.plot_3d_complexity_cube(plot_df)
-    if fig17: st.plotly_chart(fig17, use_container_width=True)
+    if fig17: st.plotly_chart(fig17, width="stretch")
 
 with col_e2:
     st.subheader("18. PCA Cluster Map")
@@ -421,7 +421,7 @@ with col_e2:
     **Insight**: The most powerful view. Songs in the same color cluster are "mathematical cousins" regardless of Genre.
     """)
     fig18 = cv.plot_pca_cluster_map(plot_df, metrics_list)
-    if fig18: st.plotly_chart(fig18, use_container_width=True)
+    if fig18: st.plotly_chart(fig18, width="stretch")
 
 st.subheader("19. Animated Complexity Evolution")
 st.caption("""
@@ -429,6 +429,6 @@ st.caption("""
 **Insight**: See if higher complexity makes songs more erratic (high Novelty) or if they stay structured.
 """)
 fig19 = cv.plot_animated_complexity_bubble(plot_df)
-if fig19: st.plotly_chart(fig19, use_container_width=True)
+if fig19: st.plotly_chart(fig19, width="stretch")
 
 
